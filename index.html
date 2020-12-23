@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        canvas {
+            margin-top: 100px;
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div>
+        CyberSrakPhysicsEngine2D Collision 500 Circles. Acceleration to center
+        <canvas id="root" width="920" height="900"></canvas>
+    </div>
+
+
+    <!-- <script src="./GameManager.js"></script> -->
+
+    <script type="module">
+        // alert();
+        const width = 920, height = 900;
+        ctx = document.getElementById('root').getContext('2d');
+
+        import { Engine2D, Circle, Vector } from './PhysicsEngine2DLib/main.js';
+        import GameManager from './GameManager.js';
+
+        let game = new GameManager();
+        game.setCanvasSize(width, height);
+        game.setCtx(ctx);
+
+        game.init();
+
+        for (let i = 0; i < 150; i++) {
+            let cx = width / 2;
+            let cy = height / 2;
+            let px = Math.random() * width;
+            let py = Math.random() * height;
+
+            let circle = new Circle(px, py, ((Math.random() * 12) + 14));
+
+            let acc = (Math.random() * 1 + 1) * 0
+            circle.acceleration = (new Vector(cx, cy)).subtr(circle.position).normalize().mult(acc)
+
+            game.addObject(circle)
+        }
+
+
+        let circle = new Circle(400, 300, 10);
+        game.addObject(circle)
+        game.keyControl(circle)
+    </script>
+</body>
+
+</html>
