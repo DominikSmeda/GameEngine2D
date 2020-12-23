@@ -8,6 +8,7 @@ class PhysicalBody {
         this.velocity = new Vector(0, 0);
         this.acceleration = new Vector(0, 0);
 
+        this.shapeType = null;
         this.mass = 1;
         this.elasticity = 1;
 

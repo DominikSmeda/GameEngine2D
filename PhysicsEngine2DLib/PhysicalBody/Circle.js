@@ -8,11 +8,11 @@ class Circle extends PhysicalBody {
             position: {
                 x,
                 y
-            }
+            },
         });
-
+        this.shapeType = 'Circle';
+        this.mass = r;
         this.radius = r;
-
         this.focused = false;
     }
 

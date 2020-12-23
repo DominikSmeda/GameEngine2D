@@ -15,6 +15,16 @@ class Timer {
         this.reset();
         return (Date.now() - lastTime) / this.divider;
     }
+
+    deltaTimeMs() {
+        let lastTime = this.lastTime;
+        this.reset();
+        return Date.now() - lastTime;
+    }
+
+    timeElapsed() {
+        return Date.now() - this.lastTime;
+    }
 }
 
 export default Timer;

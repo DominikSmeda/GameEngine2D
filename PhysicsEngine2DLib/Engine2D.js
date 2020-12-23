@@ -1,28 +1,34 @@
 
 //Basic
 import Vector from './Vector.js';
-// import Timer from './Timer.js';
+import Timer from './Timer.js';
 
 //PhysicalBody
 import PhysicalBody from './PhysicalBody/PhysicalBody.js';
 import Circle from './PhysicalBody/Circle.js';
-
+var t = new Timer();
 
 class Engine2D {
     constructor() {
 
         this.objects = [];
+        this.tickCollisionTimer = new Timer();
+        this.tickCollisionMaxCalcTime = 40;
+        this.lastCollisionIndex = 0;
+
     }
 
     init() {
+
     }
 
     update(dt) {
         for (let obj of this.objects) {
             obj.update(dt);
         }
-
+        // let timer = new Timer();
         this.handleCollisions();
+        // console.log('handleCollision', timer.deltaTimeMs());
     }
 
     addObject(obj) {
@@ -30,21 +36,34 @@ class Engine2D {
     }
 
     handleCollisions() {
-        this.objects.forEach((obj1, index) => {
-            for (let i = index + 1; i < this.objects.length; i++) {
+
+        // if (this.lastCollisionIndex == 0) {
+        //     console.log(t.deltaTimeMs());
+        // }
+        this.tickCollisionTimer.reset();
+
+
+        const length = this.objects.length;
+        for (let index = this.lastCollisionIndex; index < length; index++) {
+            if (this.tickCollisionTimer.timeElapsed() > this.tickCollisionMaxCalcTime) {
+                this.lastCollisionIndex = index;
+                return
+            }
+
+            let obj1 = this.objects[index];
+            for (let i = index + 1; i < length; i++) {
                 this.detectCollisionBetween(obj1, this.objects[i]);
             }
-        });
+        }
+        this.lastCollisionIndex = 0;
     }
 
-    detectCollisionBetween(obj1, obj2) {//Must be change to instance of due to inheritance posibility
-        let objClass1 = obj1.constructor.name;
-        let objClass2 = obj2.constructor.name;
+    detectCollisionBetween(obj1, obj2) {
 
         let detectFunction = null;
 
-        if (objClass1 == objClass2) {
-            switch (objClass1) {
+        if (obj1.shapeType == obj2.shapeType) {
+            switch (obj1.shapeType) {
                 case 'Circle':
                     detectFunction = this.colisionCircleCircle;
                     break;
@@ -82,12 +101,26 @@ class Engine2D {
                 let relativeVelocity = c1.velocity.clone().subtr(c2.velocity);
 
                 let separatingVelocity = relativeVelocity.dot(normal);
+
                 let elasticity = 1;
-                let separatingVelocityVector = normal.mult(-separatingVelocity * elasticity);
+                let newSeparatingVelocity = -separatingVelocity * elasticity;
 
-                c1.velocity.add(separatingVelocityVector);
-                c2.velocity.add(separatingVelocityVector.negate());
+                let separatingVelocityDiff = newSeparatingVelocity - separatingVelocity;
+                let c1InvMass = 1 / c1.mass;
+                let c2InvMass = 1 / c2.mass;
 
+                if (c1.mass == 0) {
+                    c1InvMass = 0;
+                }
+                if (c2.mass == 0) {
+                    c2InvMass = 0;
+                }
+
+                let impulse = separatingVelocityDiff / (c1InvMass + c2InvMass);
+                let impulseVec = normal.mult(impulse);
+
+                c1.velocity.add(impulseVec.mult(c1InvMass));
+                c2.velocity.add(impulseVec.mult(c2InvMass).negate());
             }
             return { centerDistance, distance, collision: true };
         }
