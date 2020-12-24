@@ -80,7 +80,8 @@ class Engine2D {
     }
 
     colisionCircleCircle(c1, c2) {
-        let centerDistance = c1.position.clone().subtr(c2.position).mag();
+        let centerDistanceVec = c2.position.clone().subtr(c1.position)
+        let centerDistance = centerDistanceVec.mag();
         let bothR = c1.radius + c2.radius;
 
         if (centerDistance <= bothR) {
@@ -91,14 +92,22 @@ class Engine2D {
             let distance = centerDistance - bothR;
 
             if (c1.preventCovering && c2.preventCovering) {
-                let penetrationVec = c2.position.clone().subtr(c1.position).normalize().mult(distance / 2);
+                //penetration
+                let penetrationVec
+                if (c1.invertedMass + c2.invertedMass == 0) {
+                    penetrationVec = centerDistanceVec.clone().normalize().mult(distance / 2);
+                    c1.position.add(penetrationVec);
+                    c2.position.add(penetrationVec);
+                }
+                else {
+                    penetrationVec = centerDistanceVec.clone().normalize().mult(distance / (c1.invertedMass + c2.invertedMass));
+                    c1.position.add(penetrationVec.clone().mult(c1.invertedMass));
+                    c2.position.add(penetrationVec.mult(-c2.invertedMass));
+                }
 
-                c1.position.add(penetrationVec);
-                c2.position.add(penetrationVec.negate());
 
-
-
-                let normal = c1.position.clone().subtr(c2.position).normalize();
+                //response
+                let normal = centerDistanceVec.clone().negate().normalize();
 
                 let relativeVelocity = c1.velocity.clone().subtr(c2.velocity);
 
@@ -118,7 +127,7 @@ class Engine2D {
                 }
                 let impulseVec = normal.mult(impulse);
 
-                c1.velocity.add(impulseVec.mult(c1.invertedMass));
+                c1.velocity.add(impulseVec.clone().mult(c1.invertedMass));
                 c2.velocity.add(impulseVec.mult(c2.invertedMass).negate());
             }
             return { centerDistance, distance, collision: true };
