@@ -96,6 +96,8 @@ class Engine2D {
                 c1.position.add(penetrationVec);
                 c2.position.add(penetrationVec.negate());
 
+
+
                 let normal = c1.position.clone().subtr(c2.position).normalize();
 
                 let relativeVelocity = c1.velocity.clone().subtr(c2.velocity);
@@ -106,21 +108,18 @@ class Engine2D {
                 let newSeparatingVelocity = -separatingVelocity * elasticity;
 
                 let separatingVelocityDiff = newSeparatingVelocity - separatingVelocity;
-                let c1InvMass = 1 / c1.mass;
-                let c2InvMass = 1 / c2.mass;
 
-                if (c1.mass == 0) {
-                    c1InvMass = 0;
+                let impulse;
+                if (c1.invertedMass + c2.invertedMass == 0) {
+                    impulse = 1; //or 0;
                 }
-                if (c2.mass == 0) {
-                    c2InvMass = 0;
+                else {
+                    impulse = separatingVelocityDiff / (c1.invertedMass + c2.invertedMass);
                 }
-
-                let impulse = separatingVelocityDiff / (c1InvMass + c2InvMass);
                 let impulseVec = normal.mult(impulse);
 
-                c1.velocity.add(impulseVec.mult(c1InvMass));
-                c2.velocity.add(impulseVec.mult(c2InvMass).negate());
+                c1.velocity.add(impulseVec.mult(c1.invertedMass));
+                c2.velocity.add(impulseVec.mult(c2.invertedMass).negate());
             }
             return { centerDistance, distance, collision: true };
         }

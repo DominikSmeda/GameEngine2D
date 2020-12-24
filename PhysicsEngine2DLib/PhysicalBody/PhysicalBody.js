@@ -10,6 +10,7 @@ class PhysicalBody {
 
         this.shapeType = null;
         this.mass = 1;
+        this.invertedMass = 1;
         this.elasticity = 1;
 
         this.forces = [];
@@ -47,6 +48,16 @@ class PhysicalBody {
         // if (this.preventCovering) {
         //     this.velocity.set(0, 0);
         // }
+    }
+
+    setMass(mass) {
+        this.mass = mass;
+        if (mass == 0) {
+            this.invertedMass = 0;
+        }
+        else {
+            this.invertedMass = 1 / mass;
+        }
     }
 }
 

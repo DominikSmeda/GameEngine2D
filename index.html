@@ -44,27 +44,26 @@
 
 
 
-        for (let i = 0; i < 500; i++) {
+        for (let i = 0; i < 150; i++) {
             let cx = width / 2;
             let cy = height / 2;
             let px = Math.random() * width;
             let py = Math.random() * height;
 
-            let circle = new Circle(px, py, ((Math.random() * 12) + 3));
+            let circle = new Circle(px, py, ((Math.random() * 42) + 3));
 
-            let acc = (Math.random() * 1 + 1) * 1
+            let acc = (Math.random() * 1 + 1) * 0
             circle.acceleration = (new Vector(cx, cy)).subtr(circle.position).normalize().mult(acc)
-
+            circle.setMass(0);
             game.addObject(circle)
         }
 
         game.init();
         let circle = new Circle(400, 300, 10);
+        circle.setMass(10);
         game.addObject(circle)
         game.keyControl(circle)
 
-        let circle2 = new Circle(width / 2, 300, 100);
-        // game.addObject(circle2)
     </script>
 </body>
 
