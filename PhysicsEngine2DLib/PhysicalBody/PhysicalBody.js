@@ -8,7 +8,7 @@ class PhysicalBody {
         this.velocity = new Vector(0, 0);
         this.acceleration = new Vector(0, 0);
 
-        this.shapeType = null;
+        this.type = 'PhysicalBody';
         this.mass = 1;
         this.invertedMass = 1;
         this.elasticity = 1;
@@ -20,11 +20,17 @@ class PhysicalBody {
         this.collisionReaction = true;
 
         this.colliding = false;
+
+        this.engineTempData = {
+            lockPosition: false
+        }
     }
 
     update(dt) {
         this.velocity.add(this.acceleration.clone().mult(dt));
+        this.velocity.mult(0.99)
         this.position.add(this.velocity.clone().mult(dt));
+
     }
 
     applyForce(force) {

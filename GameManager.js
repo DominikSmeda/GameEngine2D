@@ -38,10 +38,12 @@ class GameManager extends Engine2D {
     }
 
     render() {
-        ctx.clearRect(0, 0, ctxWidth, ctxHeight)
+        ctx.clearRect(0, 0, ctxWidth, ctxHeight);
         this.objects.forEach((obj) => {
             obj.render();
         })
+
+        super.render();
     }
 
     setCanvasSize(width, height) {
@@ -65,29 +67,29 @@ class GameManager extends Engine2D {
             switch (e.key) {
                 case 'r':
                 case 'R':
-                    this.controlObject.velocity.set(0, 0);
+                    this.controlObject.acceleration.set(0, 0);
                     break;
 
                 case 'c':
                     this.controlObject.acceleration.set(40, 30);
                     break;
                 case 'ArrowUp':
-                    this.controlObject.velocity.add(new Vector(0, -1))
+                    this.controlObject.acceleration.add(new Vector(0, -1))
                     break;
 
                 case 'ArrowDown':
-                    this.controlObject.velocity.add(new Vector(0, 1))
+                    this.controlObject.acceleration.add(new Vector(0, 1))
                     break;
 
                 case 'ArrowLeft':
-                    this.controlObject.velocity.add(new Vector(-1, 0))
+                    this.controlObject.acceleration.add(new Vector(-1, 0))
                     break;
 
                 case 'ArrowRight':
-                    this.controlObject.velocity.add(new Vector(1, 0))
+                    this.controlObject.acceleration.add(new Vector(1, 0))
                     break;
             }
-            console.log(this.controlObject.velocity.mag(), this.controlObject.position);
+            console.log(this.controlObject.acceleration.mag(), this.controlObject.position);
         })
 
     }

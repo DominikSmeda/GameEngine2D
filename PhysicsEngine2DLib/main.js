@@ -5,6 +5,7 @@ import Timer from './Timer.js';
 
 //PhysicalBody
 import PhysicalBody from './PhysicalBody/PhysicalBody.js';
+import Line from './PhysicalBody/Line.js';
 import Circle from './PhysicalBody/Circle.js';
 
 
@@ -17,5 +18,6 @@ export {
     Vector,
     Timer,
     PhysicalBody,
+    Line,
     Circle
 }

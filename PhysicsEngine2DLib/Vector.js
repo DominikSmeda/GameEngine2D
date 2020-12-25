@@ -84,6 +84,23 @@ class Vector {
         let dot = Number(vec1.x * vec2.x) + Number(vec1.y * vec2.y);
         return Math.atan2(det, dot);
     }
+
+    static dot(vec1, vec2) {
+        return Number(vec1.x * vec2.x) + Number(vec1.y * vec2.y);
+    }
+
+    draw(px = 0, py = 0, color = "blue", scalar = 1) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineWidth = '3'
+        let start = new Vector(px, py);
+        let end = start.add((this).clone().mult(scalar));
+        ctx.lineTo(end.x, end.y);
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.restore();
+    }
 }
 
 export default Vector;

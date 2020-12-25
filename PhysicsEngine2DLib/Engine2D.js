@@ -16,6 +16,7 @@ class Engine2D {
         this.tickCollisionMaxCalcTime = 40;
         this.lastCollisionIndex = 0;
 
+        this.helpers = [];
     }
 
     init() {
@@ -29,10 +30,28 @@ class Engine2D {
         // let timer = new Timer();
         this.handleCollisions();
         // console.log('handleCollision', timer.deltaTimeMs());
+        for (let obj of this.objects) {
+            obj.engineTempData.lockPosition = false;
+        }
+    }
+
+    render() {
+        for (let helper of this.helpers) {
+            helper();
+        }
+        this.helpers = [];
     }
 
     addObject(obj) {
-        this.objects.push(obj);
+        if (obj.type == 'Line') {
+            this.objects.unshift(obj)
+        } else {
+            this.objects.push(obj);
+        }
+    }
+
+    addHelper(fun) {
+        this.helpers.push(fun);
     }
 
     handleCollisions() {
@@ -60,12 +79,10 @@ class Engine2D {
 
     detectCollisionBetween(obj1, obj2) {
 
-        let detectFunction = null;
-
-        if (obj1.shapeType == obj2.shapeType) {
-            switch (obj1.shapeType) {
+        if (obj1.type == obj2.type) {
+            switch (obj1.type) {
                 case 'Circle':
-                    detectFunction = this.colisionCircleCircle;
+                    this.colisionCircleCircle(obj1, obj2)//Todo check if direct invoke is faster
                     break;
 
                 default:
@@ -73,10 +90,9 @@ class Engine2D {
             }
         }
         else {
-
+            this.collisionLineCircle(obj1, obj2);
         }
 
-        return detectFunction(obj1, obj2);
     }
 
     colisionCircleCircle(c1, c2) {
@@ -91,45 +107,42 @@ class Engine2D {
 
             let distance = centerDistance - bothR;
 
-            if (c1.preventCovering && c2.preventCovering) {
-                //penetration
-                let penetrationVec
-                if (c1.invertedMass + c2.invertedMass == 0) {
-                    penetrationVec = centerDistanceVec.clone().normalize().mult(distance / 2);
-                    c1.position.add(penetrationVec);
-                    c2.position.add(penetrationVec);
-                }
-                else {
-                    penetrationVec = centerDistanceVec.clone().normalize().mult(distance / (c1.invertedMass + c2.invertedMass));
-                    c1.position.add(penetrationVec.clone().mult(c1.invertedMass));
-                    c2.position.add(penetrationVec.mult(-c2.invertedMass));
-                }
-
-
-                //response
-                let normal = centerDistanceVec.clone().negate().normalize();
-
-                let relativeVelocity = c1.velocity.clone().subtr(c2.velocity);
-
-                let separatingVelocity = relativeVelocity.dot(normal);
-
-                let elasticity = 1;
-                let newSeparatingVelocity = -separatingVelocity * elasticity;
-
-                let separatingVelocityDiff = newSeparatingVelocity - separatingVelocity;
-
-                let impulse;
-                if (c1.invertedMass + c2.invertedMass == 0) {
-                    impulse = 1; //or 0;
-                }
-                else {
-                    impulse = separatingVelocityDiff / (c1.invertedMass + c2.invertedMass);
-                }
-                let impulseVec = normal.mult(impulse);
-
-                c1.velocity.add(impulseVec.clone().mult(c1.invertedMass));
-                c2.velocity.add(impulseVec.mult(c2.invertedMass).negate());
+            // if (c1.preventCovering && c2.preventCovering) {
+            //penetration
+            let sumOfInvertedMasses = c1.invertedMass + c2.invertedMass;
+            if (sumOfInvertedMasses == 0) {
+                let penetrationVec = centerDistanceVec.clone().normalize().mult(distance / 2);
+                c1.position.add(penetrationVec);
+                c2.position.add(penetrationVec);
             }
+            else {
+                let penetrationVec = centerDistanceVec.clone().normalize().mult(distance / (sumOfInvertedMasses));
+                c1.position.add(penetrationVec.clone().mult(c1.invertedMass));
+                c2.position.add(penetrationVec.mult(-c2.invertedMass));
+            }
+
+
+            //response
+            let normal = centerDistanceVec.clone().negate().normalize();
+            let relativeVelocity = c1.velocity.clone().subtr(c2.velocity);
+            let separatingVelocity = relativeVelocity.dot(normal);
+
+            let newSeparatingVelocity = -separatingVelocity * Math.min(c1.elasticity, c2.elasticity);
+            let separatingVelocityDiff = newSeparatingVelocity - separatingVelocity;
+
+            let impulse;
+            if (sumOfInvertedMasses == 0) {
+                impulse = 1; //or 0;
+            }
+            else {
+                impulse = separatingVelocityDiff / (sumOfInvertedMasses);
+            }
+
+            let impulseVec = normal.mult(impulse);
+
+            c1.velocity.add(impulseVec.clone().mult(c1.invertedMass));
+            c2.velocity.add(impulseVec.mult(-c2.invertedMass));
+            // }
             return { centerDistance, distance, collision: true };
         }
         else {
@@ -137,7 +150,64 @@ class Engine2D {
         }
     }
 
-    colisionLineCircle() {
+    collisionLineCircle = (obj1, obj2) => {
+        let circle, line;
+
+        if (obj1.type == 'Circle') {
+            circle = obj1;
+            line = obj2;
+        }
+        else {
+            circle = obj2;
+            line = obj1;
+        }
+
+        let point = this.closestPointOnLine(circle, line);
+
+        let distanceVec = point.clone().subtr(circle.position);
+        let distance = distanceVec.mag();
+        if (distance <= circle.radius) {
+            line.collision(circle)
+            circle.collision(line);
+            circle.engineTempData.lockPosition = true;
+            //penetration resolution
+            let penetrationVec = distanceVec.clone().normalize().negate().mult(circle.radius - distance);
+            circle.position.add(penetrationVec);
+
+            //collision response
+            let normal = distanceVec.clone().normalize().negate();
+            let separatingVelocity = Vector.dot(circle.velocity, normal);
+            let newSeparatingVelocity = -separatingVelocity * circle.elasticity;
+            let separatingVelocityDiff = separatingVelocity - newSeparatingVelocity;
+            circle.velocity.add(normal.mult(-separatingVelocityDiff))
+        }
+
+        // this.addHelper(() => {
+        //     distanceVec.draw(circle.position.x, circle.position.y, '#ff0000', 1);
+        //     ctx.save();
+        //     ctx.fillStyle = "#ff0000";
+        //     ctx.fillRect(point.x, point.y, 5, 5);
+        //     ctx.restore();
+        // })
+
+        //Circle collide through wall? first check collision with line
+
+    }
+
+    closestPointOnLine(obj, line) {
+        let objToLineStart = line.startPoint.clone().subtr(obj.position);
+        if (Vector.dot(line.directionalVector, objToLineStart) > 0) {//go for Vector dot
+            return line.startPoint;
+        }
+
+        let objToLineEnd = obj.position.clone().subtr(line.endPoint);
+        if (line.directionalVector.dot(objToLineEnd) > 0) {//go for Vector dot
+            return line.endPoint;
+        }
+
+        let closestDist = Vector.dot(line.directionalVector, objToLineStart);
+        let closestVec = line.directionalVector.clone().mult(closestDist);
+        return line.startPoint.clone().subtr(closestVec);
 
     }
 

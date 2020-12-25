@@ -23,7 +23,7 @@
 <body>
 
     <div>
-        PhysicsEngine2D Collision 500 Circles. Acceleration to center
+        PhysicsEngine2D Collision.
         <canvas id="root" width="920" height="900"></canvas>
     </div>
 
@@ -35,7 +35,7 @@
         const width = 920, height = 900;
         ctx = document.getElementById('root').getContext('2d');
 
-        import { Engine2D, Circle, Vector } from './PhysicsEngine2DLib/main.js';
+        import { Engine2D, Circle, Vector, Line } from './PhysicsEngine2DLib/main.js';
         import GameManager from './GameManager.js';
 
         let game = new GameManager();
@@ -47,22 +47,57 @@
         for (let i = 0; i < 50; i++) {
             let cx = width / 2;
             let cy = height / 2;
-            let px = Math.random() * width;
-            let py = Math.random() * height;
-            let r = ((Math.random() * 42) + 3)
+            let px = Math.random() * (width - 100) + 50;
+            let py = 40;
+            let r = ((Math.random() * 15) + 10)
             let circle = new Circle(px, py, r);
-
-            let acc = (Math.random() * 1 + 1) * 1
-            circle.acceleration = (new Vector(cx, cy)).subtr(circle.position).normalize().mult(acc)
-            circle.setMass(r);
+            circle.setMass(r ** 2 * Math.PI);
+            circle.elasticity = 0.08;
+            // let acc = (Math.random() * 3 + 1) * 10
+            // circle.acceleration = (new Vector(cx, cy)).subtr(circle.position).normalize().mult(acc)
+            circle.acceleration.set(0, 8);
             game.addObject(circle)
         }
 
-        game.init();
-        let circle = new Circle(400, 300, 10);
-        circle.setMass(20);
+
+
+        let circle = new Circle(100, 40, 10);
+        circle.setMass(1);
+        circle.elasticity = 0.8;
+        circle.acceleration.set(0, 10);
         game.addObject(circle)
         game.keyControl(circle)
+
+        let line = new Line(10, 10, 10, height - 10);
+        game.addObject(line);
+
+        let line2 = new Line(width - 10, 10, width - 10, height - 10);
+        game.addObject(line2);
+
+        let line3 = new Line(0, 10, width, 10);
+        game.addObject(line3);
+
+        let line4 = new Line(0, height - 10, width, height - 10);
+        game.addObject(line4);
+
+        let lines = [
+            [40, 100, 400, 200],
+            [700, 160, 280, 290],
+            [40, 300, 400, 400],
+            [width, 300, 500, 800]
+        ]
+        for (let line of lines) {
+            game.addObject(new Line(line[0], line[1], line[2], line[3]));
+        }
+
+        setTimeout(() => {
+            game.init();
+        }, 500)
+
+
+        // let bigC = new Circle(210, 300, 60);
+        // bigC.setMass(60)
+        // game.addObject(bigC)
 
     </script>
 </body>

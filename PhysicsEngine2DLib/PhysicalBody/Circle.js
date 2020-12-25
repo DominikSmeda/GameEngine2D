@@ -10,7 +10,7 @@ class Circle extends PhysicalBody {
                 y
             },
         });
-        this.shapeType = 'Circle';
+        this.type = 'Circle';
         this.mass = r;
         this.radius = r;
         this.focused = false;
@@ -27,9 +27,10 @@ class Circle extends PhysicalBody {
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
         ctx.fill();
+        ctx.stroke();
 
         ctx.restore();
-        ctx.stroke();
+
         this.colliding = false;
     }
 
