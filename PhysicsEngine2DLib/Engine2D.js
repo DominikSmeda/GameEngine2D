@@ -13,7 +13,7 @@ class Engine2D {
 
         this.objects = [];
         this.tickCollisionTimer = new Timer();
-        this.tickCollisionMaxCalcTime = 40;
+        this.tickCollisionMaxCalcTime = 2040;
         this.lastCollisionIndex = 0;
 
         this.helpers = [];
@@ -64,10 +64,10 @@ class Engine2D {
 
         const length = this.objects.length;
         for (let index = this.lastCollisionIndex; index < length; index++) {
-            if (this.tickCollisionTimer.timeElapsed() > this.tickCollisionMaxCalcTime) {
-                this.lastCollisionIndex = index;
-                return
-            }
+            // if (this.tickCollisionTimer.timeElapsed() > this.tickCollisionMaxCalcTime) {
+            //     this.lastCollisionIndex = index;
+            //     return
+            // }
 
             let obj1 = this.objects[index];
             for (let i = index + 1; i < length; i++) {
@@ -116,13 +116,37 @@ class Engine2D {
                 c2.position.add(penetrationVec);
             }
             else {
-                let penetrationVec = centerDistanceVec.clone().normalize().mult(distance / (sumOfInvertedMasses));
-                c1.position.add(penetrationVec.clone().mult(c1.invertedMass));
-                c2.position.add(penetrationVec.mult(-c2.invertedMass));
+
+                if (c1.engineTempData.lockPosition || c2.engineTempData.lockPosition) {
+                    if (c1.engineTempData.lockPosition) {
+                        let penetrationVec = centerDistanceVec.clone().normalize().mult(-distance);
+                        c2.position.add(penetrationVec);
+                    }
+
+                    if (c2.engineTempData.lockPosition) {
+                        let penetrationVec = centerDistanceVec.clone().normalize().mult(distance);
+                        c1.position.add(penetrationVec);
+                    }
+                }
+                else {
+                    let penetrationVec = centerDistanceVec.clone().normalize().mult(distance / (sumOfInvertedMasses));
+                    c1.position.add(penetrationVec.clone().mult(c1.invertedMass));
+                    c2.position.add(penetrationVec.mult(-c2.invertedMass));
+                }
             }
 
 
             //response
+            let m1 = c1.invertedMass;
+            let m2 = c2.invertedMass;
+            // if (c1.engineTempData.lockPosition) {
+            //     m1 = 0;
+            // }
+            // if (c2.engineTempData.lockPosition) {
+            //     m2 = 0;
+            // }
+            sumOfInvertedMasses = c1.invertedMass + c2.invertedMass;
+            sumOfInvertedMasses = m1 + m2;
             let normal = centerDistanceVec.clone().negate().normalize();
             let relativeVelocity = c1.velocity.clone().subtr(c2.velocity);
             let separatingVelocity = relativeVelocity.dot(normal);
@@ -140,9 +164,10 @@ class Engine2D {
 
             let impulseVec = normal.mult(impulse);
 
-            c1.velocity.add(impulseVec.clone().mult(c1.invertedMass));
-            c2.velocity.add(impulseVec.mult(-c2.invertedMass));
-            // }
+            c1.velocity.add(impulseVec.clone().mult(m1));
+            c2.velocity.add(impulseVec.mult(-m2));
+
+
             return { centerDistance, distance, collision: true };
         }
         else {
@@ -170,6 +195,7 @@ class Engine2D {
             line.collision(circle)
             circle.collision(line);
             circle.engineTempData.lockPosition = true;
+            circle.engineTempData.lockDirection = distanceVec.clone().normalize();
             //penetration resolution
             let penetrationVec = distanceVec.clone().normalize().negate().mult(circle.radius - distance);
             circle.position.add(penetrationVec);

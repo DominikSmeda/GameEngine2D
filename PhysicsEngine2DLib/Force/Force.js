@@ -1,11 +1,10 @@
-const { default: Vector } = require("../Vector");
 
-import Vector from '../Vector';
+import Vector from '../Vector.js';
 
 
 class Force extends Vector {
-    constructor(name, vec) {
-        super(vec.x, vec.y);
+    constructor(name) {
+        super();
         this.name = name;
     }
 

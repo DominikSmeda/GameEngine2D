@@ -68,10 +68,11 @@ class GameManager extends Engine2D {
                 case 'r':
                 case 'R':
                     this.controlObject.acceleration.set(0, 0);
+                    this.controlObject.velocity.set(0, 0);
                     break;
 
                 case 'c':
-                    this.controlObject.acceleration.set(40, 30);
+                    console.log(this.controlObject.position, this.controlObject.velocity);
                     break;
                 case 'ArrowUp':
                     this.controlObject.acceleration.add(new Vector(0, -1))
@@ -89,7 +90,7 @@ class GameManager extends Engine2D {
                     this.controlObject.acceleration.add(new Vector(1, 0))
                     break;
             }
-            console.log(this.controlObject.acceleration.mag(), this.controlObject.position);
+            console.log(this.controlObject.acceleration.mag());
         })
 
     }

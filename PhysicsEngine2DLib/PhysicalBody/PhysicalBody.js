@@ -1,5 +1,6 @@
 
 import Vector from '../Vector.js';
+import Force from '../Force/Force.js';
 
 class PhysicalBody {
     constructor(args) {
@@ -12,6 +13,8 @@ class PhysicalBody {
         this.mass = 1;
         this.invertedMass = 1;
         this.elasticity = 1;
+        this.friction = 1;
+        this.collisionFriction = this.friction;
 
         this.forces = [];
         this.collide = true;
@@ -22,18 +25,26 @@ class PhysicalBody {
         this.colliding = false;
 
         this.engineTempData = {
-            lockPosition: false
+            lockPosition: false,
+            lockDirection: null
         }
     }
 
     update(dt) {
         this.velocity.add(this.acceleration.clone().mult(dt));
-        this.velocity.mult(0.99)
+        this.velocity.mult(this.collisionFriction);
         this.position.add(this.velocity.clone().mult(dt));
 
+
+        //reset
+        this.collisionFriction = this.friction;
     }
 
     applyForce(force) {
+        if (!(force instanceof Force)) {
+            throw new Error('Applyied object doesnt inherit from Force class');
+            return;
+        }
         this.forces.push(force);
         this.updateAcceleration();
     }
@@ -45,7 +56,14 @@ class PhysicalBody {
 
     updateAcceleration() {
         for (let force of this.forces) {
-            this.acceleration.add(force.calculate(this));
+            let f = force.calculate(this);
+            if (this.mass == 0) {
+                f.mult(0);
+            }
+            else {
+                f.div(this.mass)
+            }
+            this.acceleration.add(f);
         }
     }
 

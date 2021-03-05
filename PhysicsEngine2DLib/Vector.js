@@ -24,6 +24,9 @@ class Vector {
     }
 
     div(s) {
+        if (s == 0) {
+            alert('div')
+        }
         this.x /= s;
         this.y /= s;
         return this;
@@ -34,7 +37,11 @@ class Vector {
     }
 
     normalize() {
-        let s = this.mag()
+        let s = this.mag();
+        if (s == 0) {
+            alert('unit')
+            return this;
+        }
         this.x /= s;
         this.y /= s;
         return this;
@@ -68,6 +75,10 @@ class Vector {
 
     det(vec) {
         return Number(this.x * vec.y) - Number(this.y * vec.x);
+    }
+
+    toArray() {
+        return [this.x, this.y];
     }
 
     angleBetween(vec) {
