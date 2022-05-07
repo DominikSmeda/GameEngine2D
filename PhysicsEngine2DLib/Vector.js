@@ -36,6 +36,10 @@ class Vector {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
+    sqMag() {
+        return this.x * this.x + this.y * this.y;
+    }
+
     normalize() {
         let s = this.mag();
         if (s == 0) {

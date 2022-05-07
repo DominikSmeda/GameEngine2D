@@ -97,15 +97,15 @@ class Engine2D {
 
     colisionCircleCircle(c1, c2) {
         let centerDistanceVec = c2.position.clone().subtr(c1.position)
-        let centerDistance = centerDistanceVec.mag();
-        let bothR = c1.radius + c2.radius;
+        let centerDistanceSq = centerDistanceVec.sqMag();
+        let bothRSq = Math.pow(c1.radius + c2.radius, 2);
 
-        if (centerDistance <= bothR) {
+        if (centerDistanceSq <= bothRSq) {
 
             c1.collision(c2);
             c2.collision(c1);
-
-            let distance = centerDistance - bothR;
+            let centerDistance = Math.sqrt(centerDistanceSq)
+            let distance = centerDistance - Math.sqrt(bothRSq);
 
             // if (c1.preventCovering && c2.preventCovering) {
             //penetration
